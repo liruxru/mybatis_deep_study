@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bonc.mapper.UserMapper">
+
+    <resultMap id="userMap" type="com.bonc.pojo.SysUser">
+        <id property="id" column="id"/>
+        <result property="userName" column="user_name"/>
+        <result property="userPassword" column="user_password"/>
+        <result property="userEmail" column="user_email"/>
+        <result property="userInfo" column="user_info"/>
+        <result property="headImg" column="head_img" jdbcType="BLOB"/>
+        <result property="createTime" column="create_time"
+                jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="userMap">
+      select * from sys_user where id = #{id}
+    </select>
+    <select id="selectAll" resultType="com.bonc.pojo.SysUser">
+        select * from sys_user
+    </select>
+
+    <select id="selectRolesByUserId" resultType="com.bonc.pojo.SysRole">
+
+        select
+         r.id ,r.role_name,r.create_by,r.enable,
+         u.user_name as 'user.userName',
+         u.user_email as 'user.userEmail'
+         from sys_user u left join sys_user_role ur on (u.id=ur.user_id)
+        left join  sys_role  r on (ur.role_id = r.id)
+        where u.id=#{id}
+    </select>
+
+    <insert id="insert">
+        insert  into sys_user (user_name, user_password, user_email, user_info, head_img, create_time)
+        values (#{userName},#{userPassword},#{userEmail},#{userInfo},#{headImg,jdbcType=BLOB},#{createTime, jdbcType=TIMESTAMP})
+    </insert>
+    <!--插入返回主键-->
+    <insert id="insertAndReturnKey" useGeneratedKeys="true" keyProperty="id">
+        insert  into sys_user (user_name, user_password, user_email, user_info, head_img, create_time)
+        values (#{userName},#{userPassword},#{userEmail},#{userInfo},#{headImg,jdbcType=BLOB},#{createTime, jdbcType=TIMESTAMP})
+    </insert>
+    <!--插入返回主键-->
+    <insert id="insert3">
+        insert into sys_user (user_name, user_password, user_email, user_info, head_img, create_time)
+        values
+        (#{userName},#{userPassword},#{userEmail},#{userInfo},#{headImg,jdbcType=BLOB},#{createTime, jdbcType=TIMESTAMP})
+        <selectKey keyColumn="id" keyProperty="id" order="AFTER" resultType="long">
+            select last_insert_id()
+        </selectKey>
+
+
+    </insert>
+
+    <update id="update">
+        update sys_user
+        set user_name =#{userName},
+        user_password =#{userPassword},
+        user_email = #{userEmail},
+        user_info = #{userInfo},
+        head_img = #{headImg,jdbcType=BLOB},
+        create_time = #{createTime, jdbcType=TIMESTAMP}
+        where id =#{id}
+    </update>
+    <delete id="delete">
+        delete from sys_user where id=#{id}
+    </delete>
+
+    <select id="selectRolesByUserIdAndRoleEnabled" resultType="com.bonc.pojo.SysRole">
+        select
+         r.id ,r.role_name,r.create_by,r.enable,
+         u.user_name as 'user.userName',
+         u.user_email as 'user.userEmail'
+         from sys_user u left join sys_user_role ur on (u.id=ur.user_id)
+        left join  sys_role  r on (ur.role_id = r.id)
+        where u.id=#{userId} and r.enable = #{enable}
+
+    </select>
+
+    <select id="selectByUser" resultMap="userMap">
+        select * from sys_user where 1=1
+        <if test="userName !=null and userName!=''">
+            and user_name = #{userName}
+        </if>
+        <if test="userEmail !=null and userEmail!=''">
+            and user_email = #{userEmail}
+        </if>
+
+    </select>
+    <!--selectByUser使用where标签-->
+    <select id="selectByUser1" resultMap="userMap">
+        select * from sys_user
+        <where>
+            <if test="userName !=null and userName!=''">
+               user_name = #{userName}
+            </if>
+            <if test="userEmail !=null and userEmail!=''">
+               user_email = #{userEmail}
+            </if>
+
+        </where>
+
+    </select>
+
+    <update id="updateByIdSelective">
+        update sys_user
+        set
+        <if test="userName !=null and userName !=''">
+            user_name = #{userName},
+        </if>
+        <if test="userEmail !=null and userEmail !=''">
+            user_email = #{userEmail},
+        </if>
+        <if test="userInfo !=null and userInfo !=''">
+            user_info = #{userInfo},
+        </if>
+        <if test="headImg !=null">
+            heade_img = #{headImg,jdbcType=BLOB},
+        </if>
+        <if test="createTime !=null">
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+        </if>
+        id=#{id}
+        where id = #{id}
+    </update>
+    <!--updateByIdSelective使用set标签-->
+    <update id="updateByIdSelective1">
+        update sys_user
+        <set>
+            <if test="userName !=null and userName !=''">
+                user_name = #{userName},
+            </if>
+            <if test="userEmail !=null and userEmail !=''">
+                user_email = #{userEmail},
+            </if>
+            <if test="userInfo !=null and userInfo !=''">
+                user_info = #{userInfo},
+            </if>
+            <if test="headImg !=null">
+                heade_img = #{headImg,jdbcType=BLOB},
+            </if>
+            <if test="createTime !=null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            id=#{id}
+
+        </set>
+
+        where id = #{id}
+    </update>
+
+
+    <select id="selectByIdOrUserName" resultMap="userMap">
+        select * from sys_user where 1=1
+        <choose>
+            <when test="id != null">
+                and id = #{id}
+            </when>
+            <when test="userName !=null and userName !=''">
+                and user_name=#{userName}
+            </when>
+            <otherwise>
+                and 1=2
+            </otherwise>
+        </choose>
+
+    </select>
+    <!--foreach标签批量查询-->
+    <select id="selectByIdList" resultMap="userMap">
+        select * from sys_user where id in
+        <foreach collection="list" open="(" close=")" separator="," item="id" index="i">
+            #{id}
+        </foreach>
+    </select>
+    <!--指定参数名-->
+    <select id="selectByIdList1" resultMap="userMap">
+        select * from sys_user where id in
+        <foreach collection="idList" open="(" close=")" separator="," item="id" index="i">
+            #{id}
+        </foreach>
+    </select>
+
+
+
+    <select id="selectByIds" resultMap="userMap">
+        select * from sys_user where id in
+        <foreach collection="array" open="(" close=")" separator="," item="id" index="i">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--批量插入-->
+    <insert id="insertList">
+        insert into sys_user (user_name, user_password, user_email, user_info, head_img, create_time)
+        values
+        <foreach collection="list"  separator="," item="user">
+            (#{user.userName},#{user.userPassword},#{user.userEmail},#{user.userInfo}
+            ,#{user.headImg,jdbcType=BLOB},#{user.createTime, jdbcType=TIMESTAMP})
+        </foreach>
+
+    </insert>
+
+    <!--动态更新  遍历map-->
+    <update id="updateByMap">
+        update sys_user set
+        <foreach collection="_parameter" separator="," index="key" item="val">
+            ${key} = #{val}
+        </foreach>
+        where id = #{id}
+    </update>
+    <!--模糊查询 bind-->
+    <select id="selectByNameLike" resultMap="userMap">
+      <bind name="userNameLike" value="'%'+userName+'%'" />
+        select * from sys_user
+        where user_name like #{userNameLike}
+
+    </select>
+</mapper>
